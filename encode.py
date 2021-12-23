@@ -1,4 +1,6 @@
+from pydub import AudioSegment
 from pydub import generators
+from random import randint
 
 ascii_dict = {"A": ".-", "B": "-...", "C": "-.-.", 
               "D": "-..", "E": ".", "F": "..-.", 
@@ -18,22 +20,42 @@ ascii_dict = {"A": ".-", "B": "-...", "C": "-.-.",
 class Encode:
     def __init__(self, path, format, message, wpm):
         self.tone = generators.Sine(freq=641)
+        self.dit = int(1000*(60/(wpm*50)))
+        print(self.dit)
 
         self.path = path
         self.format = format
-        self.message = message
-        self.wpm = wpm
+        self.message = message.upper()
 
     def ascii_to_morse(self):
-        pass
+        morse = []
+        for char in self.message:
+            if char == " ":
+                morse.append("/")
+            else:
+                morse.append(ascii_dict[char])
+        return morse
 
     def morse_to_audio(self, morse):
-        pass
+        audio = AudioSegment.empty()
+        for letter in morse:
+            if letter != "/":
+                for char in letter:
+                    if char == ".":
+                        audio += self.tone.to_audio_segment(duration=self.dit)
+                    elif char == "-":
+                        audio += self.tone.to_audio_segment(duration=self.dit*3)
+                    audio += AudioSegment.silent(duration=self.dit)
+                audio += AudioSegment.silent(duration=self.dit*3)
+            else:
+                audio += AudioSegment.silent(duration=self.dit*7)
 
-    def audio_to_file(self):
-        pass
+        return audio
+
+    def audio_to_file(self, audio):
+        audio.export(self.path, format=self.format)
 
     def encode(self):
         morse = self.ascii_to_morse()
-        self.morse_to_audio(morse)
-        self.audio_to_file()
+        audio = self.morse_to_audio(morse)
+        self.audio_to_file(audio)
