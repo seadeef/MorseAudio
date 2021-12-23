@@ -30,7 +30,8 @@ def main():
             break
         except KeyboardInterrupt:
             quit()
-        except Exception:
+        except Exception as e:
+            print(e)
             print("An error ocurred, please enter valid parameters")
 
 if __name__ == '__main__':
