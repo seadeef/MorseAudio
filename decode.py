@@ -17,12 +17,13 @@ morse_dict = {".-": "A", "-...": "B", "-.-.": "C",
 
 class Decode:
     def __init__(self, path, format):
-        self.audio = AudioSegment.from_file(path, format=format)
-        self.baseline = self.audio.dBFS
+        self.audio = AudioSegment.from_file(path, format=format)   
+        self.baseline = self.audio.dBFS # Gets average loudness of audio
         self.segments = []
         self.pauses = []
 
     def process_segments(self):
+        # Splits audio into a stream of "loud" and "quiet" chunks compared to baseline
         for end in range(0, len(self.audio), 5):
             segment = self.audio[end-10:end]
             if segment.dBFS > self.baseline:
@@ -33,10 +34,14 @@ class Decode:
     def process_pauses(self):
         pauses = {}
         counter = 0
+
+        # Counts how many times each length of "pause" occurs
+        # 3 most common lengths should be manifested as dit length, dash length, and space length
         for segment in self.segments:
             if not segment:
                 counter += 1
             elif counter != 0:
+                # Chunks lengths +/- 2 occurrences together
                 for pause in pauses:
                     if -2 < (pause-counter) < 2:
                         counter = pause
@@ -46,6 +51,7 @@ class Decode:
                     pauses[counter] = 1
                 counter = 0
 
+        # Extracts 3 most common keys
         self.pauses = sorted(pauses.keys(), key=lambda key: pauses[key], reverse=True)[:3]
 
     def segments_to_morse(self):
@@ -53,11 +59,13 @@ class Decode:
         counter = 0
         switch = True
         
+        # Alternates between counting 1s and 0s in self.segments
+        # Uses self.pauses to decide what type of beep/pause there was
         for segment in self.segments:
             if segment:
                 if switch:
-                    counter += 1
-                elif counter != 0:
+                    counter += 1 # Count 1s
+                elif counter != 0: # Runs when a chain of 0s switches to 1
                     if (self.pauses[0]+self.pauses[1])/2 < counter < (self.pauses[1]+self.pauses[2])/2:
                         morse.append(" ")
                     elif (self.pauses[1]+self.pauses[2])/2 < counter:
@@ -67,8 +75,8 @@ class Decode:
                     
             else:
                 if not switch:
-                    counter += 1
-                elif counter != 0:
+                    counter += 1 # Count 0s
+                elif counter != 0: # Runs when a chain of 1s switches to 0
                     if 0 < counter < (self.pauses[0]+self.pauses[1])/2:
                         morse.append(".")
                     else:
@@ -81,6 +89,8 @@ class Decode:
     def morse_to_ascii(self, morse):
         text = []
         words = morse.split()
+
+        #Finally just convert morse to plaintext
         for word in words:
             if word == "/":
                 text.append(" ")

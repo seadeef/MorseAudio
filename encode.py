@@ -1,6 +1,5 @@
 from pydub import AudioSegment
 from pydub import generators
-from random import randint
 
 ascii_dict = {"A": ".-", "B": "-...", "C": "-.-.", 
               "D": "-..", "E": ".", "F": "..-.", 
@@ -19,9 +18,8 @@ ascii_dict = {"A": ".-", "B": "-...", "C": "-.-.",
 
 class Encode:
     def __init__(self, path, format, message, wpm):
-        self.tone = generators.Sine(freq=641)
-        self.dit = int(1000*(60/(wpm*50)))
-        print(self.dit)
+        self.tone = generators.Sine(freq=641) # Make a sine wave generator
+        self.dit = int(1000*(60/(int(wpm)*50))) # Calculate dit length
 
         self.path = path
         self.format = format
@@ -29,6 +27,8 @@ class Encode:
 
     def ascii_to_morse(self):
         morse = []
+        
+        # Convert message to morse
         for char in self.message:
             if char == " ":
                 morse.append("/")
@@ -38,6 +38,8 @@ class Encode:
 
     def morse_to_audio(self, morse):
         audio = AudioSegment.empty()
+        
+        # Add appropriate segments of "beep" and silence to audio
         for letter in morse:
             if letter != "/":
                 for char in letter:
@@ -53,7 +55,7 @@ class Encode:
         return audio
 
     def audio_to_file(self, audio):
-        audio.export(self.path, format=self.format)
+        audio.export(self.path, format=self.format) # Export audio to a sound file
 
     def encode(self):
         morse = self.ascii_to_morse()
