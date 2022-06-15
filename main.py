@@ -13,8 +13,8 @@ def main():
         try:
             # Ask for encode parameters
             if choice == "e":
-                path = input("Enter the filename to save to: ")
-                format = input("Enter the file's format (.ext): ")
+                path = input("Enter the filename to save to (include file extension): ")
+                format = input("Enter the file's format (\"mp3\", \"wav\", etc.): ")
                 message = input("Enter the message to encode: ")
                 wpm = input("Enter the wpm to encode at: ")
 
@@ -23,8 +23,8 @@ def main():
                 print("Message successfully encoded!")
             # Ask for decode parameters
             else:
-                path = input("Enter the file's path: ")
-                format = input("Enter the file's format (.ext): ")
+                path = input("Enter the filepath and filename (include file extension): ")
+                format = input("Enter the file's format (\"mp3\", \"wav\", etc.): ")
 
                 dec_instance = Decode(path, format)
                 decoded = dec_instance.decode()
@@ -34,7 +34,7 @@ def main():
         except KeyboardInterrupt:
             quit()
         except Exception as e:
-            print("An error ocurred, please enter valid parameters")
+            print("\nAn error ocurred, please enter valid parameters")
 
 if __name__ == '__main__':
     main()
