@@ -24,8 +24,9 @@ class Decode:
 
     def process_segments(self):
         # Splits audio into a stream of "loud" and "quiet" chunks compared to baseline
-        for end in range(0, len(self.audio), 5):
-            segment = self.audio[end-10:end]
+        chunk = 5
+        for end in range(chunk, len(self.audio), chunk):
+            segment = self.audio[end - chunk:end]
             if segment.dBFS > self.baseline:
                 self.segments.append(True)
             else:
@@ -51,8 +52,8 @@ class Decode:
                     pauses[counter] = 1
                 counter = 0
 
-        # Extracts 3 most common keys
-        self.pauses = sorted(pauses.keys(), key=lambda key: pauses[key], reverse=True)[:3]
+        # Extracts 3 most common keys, sorts by length
+        self.pauses = sorted(sorted(pauses.keys(), key=lambda key: pauses[key], reverse=True)[:3])
 
     def segments_to_morse(self):
         morse = []
@@ -66,10 +67,14 @@ class Decode:
                 if switch:
                     counter += 1 # Count 1s
                 elif counter != 0: # Runs when a chain of 0s switches to 1
-                    if (self.pauses[0]+self.pauses[1])/2 < counter < (self.pauses[1]+self.pauses[2])/2:
-                        morse.append(" ")
-                    elif (self.pauses[1]+self.pauses[2])/2 < counter:
-                        morse.append(" / ")
+                    if len(self.pauses) == 3:
+                        if (self.pauses[0] + self.pauses[1]) / 2 < counter < (self.pauses[1] + self.pauses[2]) / 2:
+                            morse.append(" ")
+                        elif (self.pauses[1] + self.pauses[2]) / 2 < counter:
+                            morse.append(" / ")
+                    elif len(self.pauses) == 2:
+                        if (self.pauses[0] + self.pauses[1]) / 2 < counter:
+                            morse.append(" ")
                     switch = not(switch)
                     counter = 0
                     
@@ -77,10 +82,16 @@ class Decode:
                 if not switch:
                     counter += 1 # Count 0s
                 elif counter != 0: # Runs when a chain of 1s switches to 0
-                    if 0 < counter < (self.pauses[0]+self.pauses[1])/2:
-                        morse.append(".")
-                    else:
-                        morse.append("-")
+                    if len(self.pauses) >= 2:
+                        if counter < (self.pauses[0] + self.pauses[1]) / 2:
+                            morse.append(".")
+                        else:
+                            morse.append("-")
+                    elif len(self.pauses) == 1:
+                        if self.pauses[0] < counter:
+                            morse.append("-")
+                        else:
+                            morse.append(".")
                     switch = not(switch)
                     counter = 0
 
